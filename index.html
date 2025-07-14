@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>دف الكلمة</title>
+  <style>
+    body {
+      font-family: 'Cairo', Tahoma, Arial, sans-serif;
+      background: #181c24;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      color: #f1f1f1;
+    }
+    h1 {
+      color: #e0e6ed;
+      margin-top: 40px;
+      margin-bottom: 30px;
+      font-size: 2.2em;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px #1114;
+    }
+    #userInput {
+      padding: 10px;
+      font-size: 1.1em;
+      border: 1px solid #333a;
+      border-radius: 6px;
+      width: 260px;
+      margin-bottom: 10px;
+      outline: none;
+      background: #232837;
+      color: #f1f1f1;
+      transition: border 0.2s, background 0.2s;
+    }
+    #userInput:focus {
+      border-color: #4a90e2;
+      background: #232b3b;
+    }
+    button {
+      padding: 10px 30px;
+      font-size: 1.1em;
+      background: #4a90e2;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px #0002;
+    }
+    button:hover {
+      background: #357ab8;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 15px 20px;
+      background: #232837;
+      border-radius: 8px;
+      min-width: 200px;
+      min-height: 30px;
+      box-shadow: 0 2px 8px #0005;
+      color: #f1f1f1;
+      font-size: 1.1em;
+    }
+    #wordsList {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+      width: 260px;
+    }
+    #wordsList li {
+      background: #232837;
+      color: #f1f1f1;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px #0002;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <h1>قاموس Ln - FrD </h1>
+  <input type="text" id="userInput" placeholder="اكتب كلمتك هنا">
+  <br>
+  <button onclick="submitText()">دف الكلمة</button>
+  <div id="output"></div>
+  <ul id="wordsList"></ul>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    const socket = io();
+
+    socket.on('newWord', function(word) {
+      const list = document.getElementById('wordsList');
+      const li = document.createElement('li');
+      li.textContent = word;
+      list.prepend(li); // ← الكلمة الجديدة تظهر فوق
+    });
+
+    // دالة لجلب الكلمات من السيرفر وعرضها
+    async function loadWords() {
+      const res = await fetch('/words');
+      const words = await res.json();
+      const list = document.getElementById('wordsList');
+      list.innerHTML = '';
+      words.reverse().forEach(word => { // ← اعكس الترتيب ليظهر الجديد أولاً
+        const li = document.createElement('li');
+        li.textContent = word;
+        list.appendChild(li);
+      });
+    }
+
+    // دالة لإرسال كلمة جديدة
+    async function submitText() {
+      const inputElem = document.getElementById('userInput');
+      const input = inputElem.value.trim();
+      if (!input) return;
+
+      const response = await fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: input })
+      });
+
+      const result = await response.text();
+      document.getElementById('output').innerText = result;
+
+      inputElem.value = '';
+      inputElem.focus();
+
+      // تحديث القائمة بعد الإرسال
+      loadWords();
+    }
+
+    // تحميل الكلمات عند فتح الصفحة
+    window.onload = loadWords;
+  </script>
+</body>
+</html>
