@@ -35,6 +35,10 @@ app.get('/words', (req, res) => {
   });
 });
 
+app.use((req, res, next) => {
+  res.send('<h2 style="text-align:center;margin-top:50px;">الموقع متوقف مؤقتاً من قبل الإدارة</h2>');
+});
+
 server.listen(port, () => {
   console.log(`السيرفر شغّال على http://localhost:${port}`);
 });
