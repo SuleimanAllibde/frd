@@ -98,7 +98,7 @@
       const list = document.getElementById('wordsList');
       const li = document.createElement('li');
       li.textContent = word;
-      list.prepend(li); // ← الكلمة الجديدة تظهر فوق
+      list.prepend(li); // الكلمة الجديدة تظهر فوق
     });
 
     // دالة لجلب الكلمات من السيرفر وعرضها
@@ -107,10 +107,10 @@
       const words = await res.json();
       const list = document.getElementById('wordsList');
       list.innerHTML = '';
-      words.reverse().forEach(word => { // ← اعكس الترتيب ليظهر الجديد أولاً
+      words.reverse().forEach(word => { // اعكس الترتيب ليظهر الجديد أولاً
         const li = document.createElement('li');
         li.textContent = word;
-        list.appendChild(li);
+        list.prepend(li); // استخدم prepend ليظهر الجديد فوق
       });
     }
 
@@ -120,7 +120,7 @@
       const input = inputElem.value.trim();
       if (!input) return;
 
-      const response = await fetch('/api/save', {
+      const response = await fetch('/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ word: input })
@@ -132,8 +132,7 @@
       inputElem.value = '';
       inputElem.focus();
 
-      // تحديث القائمة بعد الإرسال
-      loadWords();
+      // لا داعي لاستدعاء loadWords هنا لأن Socket.IO سيحدث القائمة تلقائياً
     }
 
     // تحميل الكلمات عند فتح الصفحة
